@@ -137,6 +137,11 @@ const routes = [
     component: () => import('@/pages/courses/CoursePlayerPage.vue'),
     meta: { requiresAuth: true, layout: 'blank' },
   },
+  {
+    path: '/test/:id',
+    component: () => import('@/pages/courses/TestPage.vue'),
+    meta: { requiresAuth: true }
+  },
 
   // Subscriptions
   {

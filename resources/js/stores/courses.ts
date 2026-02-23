@@ -295,5 +295,39 @@ export const useCoursesStore = defineStore('courses', {
     clearError() {
       this.error = null
     },
+
+    // Test management
+    async startTest(testId: number): Promise<any> {
+      this.loading = true
+      try {
+        const { data } = await api.post(`/tests/${testId}/start`)
+        return data.data
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchTest(testId: number): Promise<any> {
+      this.loading = true
+      try {
+        const { data } = await api.get(`/tests/${testId}`)
+        return data.data
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async submitTest(testId: number, attemptId: number, answers: Record<number, any>): Promise<any> {
+      this.loading = true
+      try {
+        const { data } = await api.post(`/tests/${testId}/submit`, {
+          attemptId,
+          answers
+        })
+        return data.data
+      } finally {
+        this.loading = false
+      }
+    },
   },
 })
