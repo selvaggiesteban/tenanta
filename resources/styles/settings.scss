@@ -1,0 +1,5 @@
+@use 'vuetify/settings' with (
+  $body-font-family: ('Public Sans', sans-serif),
+  $border-radius-root: 6px,
+  $card-border-radius: 10px,
+);
