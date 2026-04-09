@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\AuthController;
-
 use App\Http\Controllers\Api\CRM\ClientController;
 use App\Http\Controllers\Api\CRM\ContactController;
 use App\Http\Controllers\Api\CRM\LeadController;
@@ -128,6 +127,7 @@ Route::prefix('v1')->group(function () {
         |--------------------------------------------------------------------------
         */
         Route::prefix('crm')->middleware(\App\Http\Middleware\CRMReadAccessMiddleware::class)->group(function () {
+        Route::prefix('crm')->group(function () {
             // Clients
             Route::apiResource('clients', ClientController::class);
             Route::get('clients/{client}/contacts', [ClientController::class, 'contacts']);
@@ -187,6 +187,9 @@ Route::prefix('v1')->group(function () {
             Route::patch('tasks/{task}/reject', [TaskController::class, 'reject']);
             Route::patch('tasks/{task}/complete', [TaskController::class, 'complete']);
             // ... resto de rutas de tareas
+            Route::post('tasks/reorder', [TaskController::class, 'reorder']);
+            Route::post('tasks/{task}/dependencies', [TaskController::class, 'addDependency']);
+            Route::delete('tasks/{task}/dependencies/{dependency}', [TaskController::class, 'removeDependency']);
         });
 
         /*
@@ -213,6 +216,10 @@ Route::prefix('v1')->group(function () {
         |--------------------------------------------------------------------------
         */
         Route::prefix('support')->middleware(\App\Http\Middleware\TicketAccessMiddleware::class)->group(function () {
+        | Support Routes
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('support')->group(function () {
             // Tickets
             Route::apiResource('tickets', TicketController::class);
             Route::post('tickets/{ticket}/reply', [TicketController::class, 'reply']);
@@ -225,6 +232,9 @@ Route::prefix('v1')->group(function () {
             // Knowledge Base
             Route::apiResource('kb/categories', KbCategoryController::class);
             Route::apiResource('kb/articles', KbArticleController::class);
+            Route::patch('kb/articles/{kbArticle}/publish', [KbArticleController::class, 'publish']);
+            Route::patch('kb/articles/{kbArticle}/archive', [KbArticleController::class, 'archive']);
+            Route::post('kb/articles/{kbArticle}/feedback', [KbArticleController::class, 'feedback']);
         });
 
         /*
@@ -237,6 +247,19 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('/', CourseController::class)->parameters(['' => 'course']);
             Route::post('{course}/publish', [CourseController::class, 'publish']);
             // ... resto de rutas de cursos
+        | Chat Routes
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('chat')->group(function () {
+            // Conversations
+            Route::get('conversations', [ChatController::class, 'index']);
+            Route::post('conversations', [ChatController::class, 'store']);
+            Route::get('conversations/{conversation}', [ChatController::class, 'show']);
+            Route::delete('conversations/{conversation}', [ChatController::class, 'destroy']);
+
+            // Messages
+            Route::post('conversations/{conversation}/messages', [ChatController::class, 'sendMessage']);
+            Route::post('conversations/{conversation}/stream', [ChatController::class, 'streamMessage']);
         });
 
         /*
@@ -296,6 +319,7 @@ Route::prefix('v1')->group(function () {
         /*
         |--------------------------------------------------------------------------
         | Dashboard & Intelligence Routes
+        | Dashboard Routes
         |--------------------------------------------------------------------------
         */
         Route::prefix('dashboards')->group(function () {
@@ -405,6 +429,11 @@ Route::prefix('v1')->group(function () {
                 ->name('payments.webhook')
                 ->withoutMiddleware([\App\Http\Middleware\TenantMiddleware::class]);
         });
+            // Route::get('branding', [Settings\BrandingController::class, 'show']);
+            // Route::put('branding', [Settings\BrandingController::class, 'update']);
+            // Route::get('profile', [Settings\ProfileController::class, 'show']);
+            // Route::put('profile', [Settings\ProfileController::class, 'update']);
+        });
     });
 
     /*
@@ -423,5 +452,15 @@ Route::prefix('v1')->group(function () {
         Route::put('landings/{tenant}', [\App\Http\Controllers\Api\Admin\LandingController::class, 'update']);
         Route::post('landings/{tenant}/regenerate', [\App\Http\Controllers\Api\Admin\LandingController::class, 'regenerate']);
         Route::delete('landings/{tenant}', [\App\Http\Controllers\Api\Admin\LandingController::class, 'destroy']);
+        // Tenants
+        // Route::apiResource('tenants', Admin\TenantController::class);
+        // Route::post('tenants/{tenant}/impersonate', [Admin\TenantController::class, 'impersonate']);
+
+        // Plans
+        // Route::apiResource('plans', Admin\PlanController::class);
+
+        // Analytics
+        // Route::get('analytics', [Admin\AnalyticsController::class, 'index']);
     });
 });
+            

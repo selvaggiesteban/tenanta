@@ -8,6 +8,8 @@
 
     <title>Tenanta</title>
 
+    <title>Tenanta - CRM Multi-tenant</title>
+
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
     @vite('resources/js/app.ts')
