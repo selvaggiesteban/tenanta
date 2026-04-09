@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # App Tenanta (PHP)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tenanta-app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    networks:
+      - tenanta-network
+
+  # Servidor Web (Nginx)
+  webserver:
+    image: nginx:alpine
+    container_name: tenanta-webserver
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./:/var/www
+      - ./docker-compose/nginx:/etc/nginx/conf.d/
+    networks:
+      - tenanta-network
+
+  # Base de Datos (MySQL) - Preparado para el salto de SQLite a Producción
+  db:
+    image: mysql:8.0
+    container_name: tenanta-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+    ports:
+      - "3306:3306"
+    networks:
+      - tenanta-network
+
+networks:
+  tenanta-network:
+    driver: bridge

@@ -48,6 +48,8 @@ export const useAuthStore = defineStore('auth', {
       email: string
       password: string
       password_confirmation: string
+      accepted_privacy: boolean
+      subscribed_to_newsletter: boolean
     }) {
       const response = await api.post('/auth/register', data)
 

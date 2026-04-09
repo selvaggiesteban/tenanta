@@ -25,12 +25,31 @@ class User extends Authenticatable implements JWTSubject
         'timezone',
         'avatar_url',
         'last_login_at',
+        'accepted_privacy_at',
+        'subscribed_to_newsletter',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
     ];
+
+    /**
+     * Mapeo de Roles a Español Latinoamericano
+     */
+    const ROLES = [
+        'super_admin' => 'Superadministrador',
+        'admin'       => 'Administrador',
+        'manager'     => 'Gerente',
+        'member'      => 'Inquilino',
+        'teacher'     => 'Profesor',
+        'reseller'    => 'Distribuidor',
+    ];
+
+    public function isReseller(): bool
+    {
+        return $this->role === 'reseller';
+    }
 
     protected function casts(): array
     {
@@ -40,6 +59,8 @@ class User extends Authenticatable implements JWTSubject
             'password' => 'hashed',
             'contracted_hours' => 'decimal:2',
             'billable_rate' => 'decimal:2',
+            'accepted_privacy_at' => 'datetime',
+            'subscribed_to_newsletter' => 'boolean',
         ];
     }
 
@@ -56,6 +77,11 @@ class User extends Authenticatable implements JWTSubject
         ];
     }
 
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
+
     public function isAdmin(): bool
     {
         return in_array($this->role, ['super_admin', 'admin']);
@@ -64,6 +90,29 @@ class User extends Authenticatable implements JWTSubject
     public function isManager(): bool
     {
         return in_array($this->role, ['super_admin', 'admin', 'manager']);
+    }
+
+    public function isTeacher(): bool
+    {
+        return in_array($this->role, ['super_admin', 'admin', 'teacher']);
+    }
+
+    public function isTenant(): bool
+    {
+        return $this->role === 'member';
+    }
+
+    public function getRoleNameAttribute(): string
+    {
+        return self::ROLES[$this->role] ?? $this->role;
+    }
+
+    /**
+     * Relación: Inquilinos gestionados por un Distribuidor.
+     */
+    public function managedTenants(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Tenant::class, 'reseller_id');
     }
 
     public function teams(): BelongsToMany

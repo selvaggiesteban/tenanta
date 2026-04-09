@@ -13,7 +13,19 @@ class Tenant extends Model
 
     protected $fillable = [
         'name',
+        'category',
         'slug',
+        'hero_title',
+        'hero_subtitle',
+        'hero_image',
+        'features',
+        'services',
+        'faqs',
+        'reviews',
+        'seo_metadata',
+        'about_text',
+        'cta_text',
+        'cta_url',
         'logo_url',
         'logo_light',
         'logo_dark',
@@ -25,7 +37,10 @@ class Tenant extends Model
         'settings',
         'contact_email',
         'contact_phone',
+        'whatsapp_number',
         'contact_address',
+        'business_hours',
+        'google_map_url',
         'social_links',
         'meta_title',
         'meta_description',
@@ -38,6 +53,12 @@ class Tenant extends Model
 
     protected $casts = [
         'settings' => 'array',
+        'features' => 'array',
+        'services' => 'array',
+        'faqs' => 'array',
+        'reviews' => 'array',
+        'seo_metadata' => 'array',
+        'business_hours' => 'array',
         'social_links' => 'array',
         'trial_ends_at' => 'datetime',
     ];

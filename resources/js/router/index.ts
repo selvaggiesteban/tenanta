@@ -16,9 +16,35 @@ const routes = [
     meta: { layout: 'blank', requiresGuest: true },
   },
 
-  // App routes (default layout)
+  // Public Frontend
   {
     path: '/',
+    component: () => import('@/layouts/PublicLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'home',
+        component: () => import('@/pages/public/LandingPage.vue')
+      },
+      {
+        path: 'l/:slug',
+        name: 'landing-page',
+        component: () => import('@/pages/public/LandingPage.vue')
+      },
+      {
+        path: 'pricing',
+        name: 'pricing',
+        component: () => import('@/pages/public/PricingPage.vue')
+      },
+      {
+        path: 'contact',
+        name: 'contact',
+        component: () => import('@/pages/public/ContactPage.vue')
+      }
+    ]
+  },
+  {
+    path: '/app',
     redirect: '/dashboard',
   },
   {
@@ -142,6 +168,11 @@ const routes = [
     component: () => import('@/pages/courses/TestPage.vue'),
     meta: { requiresAuth: true }
   },
+  {
+    path: '/test/:id/result/:attemptId',
+    component: () => import('@/pages/courses/TestResultPage.vue'),
+    meta: { requiresAuth: true }
+  },
 
   // Subscriptions
   {
@@ -239,6 +270,62 @@ const routes = [
     meta: { requiresAuth: true },
   },
 
+  // CRM & Intelligence Dashboards
+  {
+    path: '/finanzas/dizteku',
+    name: 'dashboard-financial',
+    component: () => import('@/pages/crm/DiztekuDashboard.vue'),
+    meta: { requiresAuth: true, title: 'Dizteku - Salud Financiera | Tenanta', description: 'Visualiza la rentabilidad real de tu negocio.' }
+  },
+  {
+    path: '/crm/piblo',
+    name: 'dashboard-sales',
+    component: () => import('@/pages/crm/PibloDashboard.vue'),
+    meta: { requiresAuth: true, title: 'Piblo - Ventas | Tenanta', description: 'Pipeline y cumplimiento de metas comerciales.' }
+  },
+  {
+    path: '/crm/cmo',
+    name: 'dashboard-marketing',
+    component: () => import('@/pages/crm/CMODashboard.vue'),
+    meta: { requiresAuth: true, title: 'CMO Intelligence | Tenanta', description: 'ROI y métricas avanzadas de marketing.' }
+  },
+  {
+    path: '/productividad/mi-panel',
+    name: 'dashboard-productivity',
+    component: () => import('@/pages/operations/MyDeskTime.vue'),
+    meta: { requiresAuth: true, title: 'Mi Productividad | Tenanta', description: 'Control de tiempo y eficiencia operativa.' }
+  },
+  {
+    path: '/productividad/equipos',
+    name: 'dashboard-teams',
+    component: () => import('@/pages/crm/TeamsPerformanceDashboard.vue'),
+    meta: { requiresAuth: true, title: 'Ranking de Equipos | Tenanta', description: 'Rendimiento y productividad por departamento.' }
+  },
+  {
+    path: '/productividad/comparativo',
+    name: 'dashboard-comparison',
+    component: () => import('@/pages/crm/ReportsComparisonDashboard.vue'),
+    meta: { requiresAuth: true, title: 'Comparativo de Informes | Tenanta', description: 'Análisis de crecimiento operativo mensual.' }
+  },
+  {
+    path: '/crm/bi-exports',
+    name: 'dashboard-bi',
+    component: () => import('@/pages/crm/BIExportsDashboard.vue'),
+    meta: { requiresAuth: true, title: 'Exportaciones BI | Tenanta', description: 'Generación de plantillas de datos externas.' }
+  },
+  {
+    path: '/admin/importar',
+    name: 'admin-import',
+    component: () => import('@/pages/admin/TenantImportPage.vue'),
+    meta: { requiresAuth: true, title: 'Importador Masivo | Tenanta', description: 'Carga dinámica de bases de datos externas.' }
+  },
+  {
+    path: '/reseller/tablero',
+    name: 'reseller-dashboard',
+    component: () => import('@/pages/admin/ResellerDashboard.vue'),
+    meta: { requiresAuth: true, title: 'Panel Distribuidor | Tenanta', description: 'Gestión de red marca blanca.' }
+  },
+
   // 404
   {
     path: '/:pathMatch(.*)*',
@@ -263,6 +350,18 @@ router.beforeEach((to, _from, next) => {
     next({ name: 'dashboard' })
   } else {
     next()
+  }
+})
+
+router.afterEach((to) => {
+  const defaultTitle = 'Tenanta - Fábrica de Crecimiento Digital'
+  const defaultDesc = 'Plataforma SaaS líder en automatización de presencia web, CRM y LMS para el mercado latinoamericano.'
+  
+  document.title = (to.meta.title as string) || defaultTitle
+  
+  const metaDescription = document.querySelector('meta[name="description"]')
+  if (metaDescription) {
+    metaDescription.setAttribute('content', (to.meta.description as string) || defaultDesc)
   }
 })
 

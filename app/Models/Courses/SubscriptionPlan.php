@@ -19,7 +19,9 @@ class SubscriptionPlan extends Model
         'description',
         'price',
         'currency',
+        'billing_cycle',
         'duration_days',
+        'trial_days',
         'features',
         'course_ids',
         'is_active',
@@ -30,12 +32,20 @@ class SubscriptionPlan extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'duration_days' => 'integer',
+        'trial_days' => 'integer',
         'features' => 'array',
         'course_ids' => 'array',
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
         'sort_order' => 'integer',
     ];
+
+    const BILLING_WEEKLY = 'weekly';
+    const BILLING_MONTHLY = 'monthly';
+    const BILLING_QUARTERLY = 'quarterly';
+    const BILLING_BIANNUAL = 'biannual';
+    const BILLING_YEARLY = 'yearly';
+    const BILLING_LIFETIME = 'lifetime';
 
     protected static function boot()
     {

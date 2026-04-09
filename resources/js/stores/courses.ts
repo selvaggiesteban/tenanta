@@ -329,5 +329,15 @@ export const useCoursesStore = defineStore('courses', {
         this.loading = false
       }
     },
+
+    async fetchTestResult(testId: number, attemptId: number): Promise<any> {
+      this.loading = true
+      try {
+        const { data } = await api.get(`/tests/${testId}/result/${attemptId}`)
+        return data.data
+      } finally {
+        this.loading = false
+      }
+    },
   },
 })

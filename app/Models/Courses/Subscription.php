@@ -19,10 +19,18 @@ class Subscription extends Model
         'plan_id',
         'starts_at',
         'ends_at',
+        'trial_ends_at',
         'status',
         'payment_id',
+        'payment_provider',
+        'payment_provider_id',
         'payment_method',
         'payment_data',
+        'last_payment_at',
+        'next_payment_at',
+        'amount',
+        'currency',
+        'external_reference',
         'cancelled_at',
         'cancellation_reason',
     ];
@@ -30,18 +38,26 @@ class Subscription extends Model
     protected $casts = [
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
+        'trial_ends_at' => 'datetime',
         'cancelled_at' => 'datetime',
+        'last_payment_at' => 'datetime',
+        'next_payment_at' => 'datetime',
         'payment_data' => 'array',
+        'amount' => 'decimal:2',
     ];
 
     const STATUS_PENDING = 'pending';
+    const STATUS_TRIAL = 'trial';
     const STATUS_ACTIVE = 'active';
+    const STATUS_PAST_DUE = 'past_due';
     const STATUS_CANCELLED = 'cancelled';
     const STATUS_EXPIRED = 'expired';
 
     const STATUSES = [
         self::STATUS_PENDING => 'Pendiente',
+        self::STATUS_TRIAL => 'Prueba',
         self::STATUS_ACTIVE => 'Activa',
+        self::STATUS_PAST_DUE => 'Vencida',
         self::STATUS_CANCELLED => 'Cancelada',
         self::STATUS_EXPIRED => 'Expirada',
     ];

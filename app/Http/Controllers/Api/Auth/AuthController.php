@@ -56,6 +56,8 @@ class AuthController extends Controller
                 'password' => bcrypt($request->password),
                 'role' => 'admin',
                 'email_verified_at' => now(),
+                'accepted_privacy_at' => now(),
+                'subscribed_to_newsletter' => $request->boolean('subscribed_to_newsletter', false),
             ]);
 
             $token = auth('api')->login($user);

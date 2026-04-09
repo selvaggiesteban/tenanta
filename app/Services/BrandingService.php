@@ -28,6 +28,20 @@ class BrandingService
             'logo_dark' => $tenant->logo_dark ?? $tenant->logo_url ?? $defaults['logo_dark'],
             'favicon' => $tenant->favicon ?? $defaults['favicon'],
 
+            // Landing Page Content
+            'category' => $tenant->category,
+            'hero_title' => $tenant->hero_title ?? $tenant->name,
+            'hero_subtitle' => $tenant->hero_subtitle,
+            'hero_image' => $tenant->hero_image,
+            'features' => $tenant->features ?? [],
+            'services' => $tenant->services ?? [],
+            'faqs' => $tenant->faqs ?? [],
+            'reviews' => $tenant->reviews ?? [],
+            'seo_metadata' => $tenant->seo_metadata ?? [],
+            'about_text' => $tenant->about_text,
+            'cta_text' => $tenant->cta_text,
+            'cta_url' => $tenant->cta_url,
+
             // Colors
             'primary_color' => $tenant->primary_color ?? $defaults['primary_color'],
             'secondary_color' => $tenant->secondary_color ?? $defaults['secondary_color'],
@@ -35,7 +49,10 @@ class BrandingService
             // Contact
             'contact_email' => $tenant->contact_email ?? $defaults['contact_email'],
             'contact_phone' => $tenant->contact_phone ?? $defaults['contact_phone'],
+            'whatsapp_number' => $tenant->whatsapp_number,
             'contact_address' => $tenant->contact_address ?? $defaults['contact_address'],
+            'business_hours' => $tenant->business_hours ?? [],
+            'google_map_url' => $tenant->google_map_url,
 
             // Social
             'social_links' => $this->mergeSocialLinks(

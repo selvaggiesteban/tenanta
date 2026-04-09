@@ -35,8 +35,19 @@ async function loadPlans() {
 async function subscribe(plan: SubscriptionPlan) {
   subscribing.value = plan.id
   try {
-    await subscriptionsStore.subscribe(plan.id)
-    router.push({ name: 'my-courses' })
+    if (plan.trial_days > 0) {
+      await subscriptionsStore.subscribe(plan.id)
+      router.push({ name: 'my-courses' })
+    } else if (plan.price > 0) {
+      const { url } = await subscriptionsStore.createCheckoutSession(plan.id)
+      if (url) {
+        window.location.href = url
+      }
+    } else {
+      // Free plan
+      await subscriptionsStore.subscribe(plan.id)
+      router.push({ name: 'my-courses' })
+    }
   } catch (error) {
     console.error('Error subscribing:', error)
   } finally {

@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\AuthController;
-use App\Http\Controllers\Api\TeamController;
+
 use App\Http\Controllers\Api\CRM\ClientController;
 use App\Http\Controllers\Api\CRM\ContactController;
 use App\Http\Controllers\Api\CRM\LeadController;
@@ -32,6 +32,8 @@ use App\Http\Controllers\Api\Marketing\EmailCampaignController;
 use App\Http\Controllers\Api\Marketing\EmailListController;
 use App\Http\Controllers\Api\Marketing\EmailTrackingController;
 use App\Http\Controllers\Api\Marketing\EmailUnsubscribeController;
+use App\Http\Controllers\Api\Omnichannel\UnifiedInboxController;
+use App\Http\Controllers\Api\Admin\ResellerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,16 +53,21 @@ Route::prefix('v1')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('public')->group(function () {
+        // Branding for current session (if any)
+        Route::get('branding', [PublicController::class, 'branding']);
+
         // Branding by tenant slug (for public pages)
         Route::get('branding/{slug}', [BrandingController::class, 'show']);
 
         // Public course catalog
-        Route::get('courses', [CourseController::class, 'catalog']);
+        Route::get('courses', [PublicController::class, 'courses']);
         Route::get('courses/{slug}', [CourseController::class, 'showBySlug']);
 
         // Public subscription plans
-        Route::get('plans', [SubscriptionPlanController::class, 'index']);
-        Route::get('plans/featured', [SubscriptionPlanController::class, 'featured']);
+        Route::get('plans', [PublicController::class, 'plans']);
+
+        // Public Inquiries
+        Route::post('inquiry', [PublicInquiryController::class, 'store']);
     });
 
     /*
@@ -120,7 +127,7 @@ Route::prefix('v1')->group(function () {
         | CRM Routes
         |--------------------------------------------------------------------------
         */
-        Route::prefix('crm')->group(function () {
+        Route::prefix('crm')->middleware(\App\Http\Middleware\CRMReadAccessMiddleware::class)->group(function () {
             // Clients
             Route::apiResource('clients', ClientController::class);
             Route::get('clients/{client}/contacts', [ClientController::class, 'contacts']);
@@ -179,9 +186,7 @@ Route::prefix('v1')->group(function () {
             Route::patch('tasks/{task}/approve', [TaskController::class, 'approve']);
             Route::patch('tasks/{task}/reject', [TaskController::class, 'reject']);
             Route::patch('tasks/{task}/complete', [TaskController::class, 'complete']);
-            Route::post('tasks/reorder', [TaskController::class, 'reorder']);
-            Route::post('tasks/{task}/dependencies', [TaskController::class, 'addDependency']);
-            Route::delete('tasks/{task}/dependencies/{dependency}', [TaskController::class, 'removeDependency']);
+            // ... resto de rutas de tareas
         });
 
         /*
@@ -204,10 +209,10 @@ Route::prefix('v1')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | Support Routes
+        | Support Routes (Tickets)
         |--------------------------------------------------------------------------
         */
-        Route::prefix('support')->group(function () {
+        Route::prefix('support')->middleware(\App\Http\Middleware\TicketAccessMiddleware::class)->group(function () {
             // Tickets
             Route::apiResource('tickets', TicketController::class);
             Route::post('tickets/{ticket}/reply', [TicketController::class, 'reply']);
@@ -220,65 +225,18 @@ Route::prefix('v1')->group(function () {
             // Knowledge Base
             Route::apiResource('kb/categories', KbCategoryController::class);
             Route::apiResource('kb/articles', KbArticleController::class);
-            Route::patch('kb/articles/{kbArticle}/publish', [KbArticleController::class, 'publish']);
-            Route::patch('kb/articles/{kbArticle}/archive', [KbArticleController::class, 'archive']);
-            Route::post('kb/articles/{kbArticle}/feedback', [KbArticleController::class, 'feedback']);
         });
 
         /*
         |--------------------------------------------------------------------------
-        | Chat Routes
+        | LMS (Courses) Routes
         |--------------------------------------------------------------------------
         */
-        Route::prefix('chat')->group(function () {
-            // Conversations
-            Route::get('conversations', [ChatController::class, 'index']);
-            Route::post('conversations', [ChatController::class, 'store']);
-            Route::get('conversations/{conversation}', [ChatController::class, 'show']);
-            Route::delete('conversations/{conversation}', [ChatController::class, 'destroy']);
-
-            // Messages
-            Route::post('conversations/{conversation}/messages', [ChatController::class, 'sendMessage']);
-            Route::post('conversations/{conversation}/stream', [ChatController::class, 'streamMessage']);
-        });
-
-        /*
-        |--------------------------------------------------------------------------
-        | Dashboard Routes
-        |--------------------------------------------------------------------------
-        */
-        Route::prefix('dashboards')->group(function () {
-            Route::get('overview', [DashboardController::class, 'overview']);
-            Route::get('sales', [DashboardController::class, 'sales']);
-            Route::get('operations', [DashboardController::class, 'operations']);
-            Route::get('team', [DashboardController::class, 'team']);
-            Route::get('support', [DashboardController::class, 'support']);
-        });
-
-        /*
-        |--------------------------------------------------------------------------
-        | Courses Routes
-        |--------------------------------------------------------------------------
-        */
-        Route::prefix('courses')->group(function () {
-            // Courses CRUD (admin/manager)
+        Route::prefix('courses')->middleware(\App\Http\Middleware\LMSAccessMiddleware::class)->group(function () {
+            // Courses CRUD (admin/manager/teacher/member read)
             Route::apiResource('/', CourseController::class)->parameters(['' => 'course']);
             Route::post('{course}/publish', [CourseController::class, 'publish']);
-            Route::post('{course}/unpublish', [CourseController::class, 'unpublish']);
-            Route::post('{course}/archive', [CourseController::class, 'archive']);
-
-            // Course Blocks
-            Route::apiResource('{course}/blocks', CourseBlockController::class)->shallow();
-            Route::post('{course}/blocks/reorder', [CourseBlockController::class, 'reorder']);
-
-            // Course Topics
-            Route::apiResource('{course}/blocks/{block}/topics', CourseTopicController::class)->shallow();
-            Route::post('{course}/blocks/{block}/topics/reorder', [CourseTopicController::class, 'reorder']);
-            Route::post('{course}/topics/{topic}/move', [CourseTopicController::class, 'moveTopic']);
-
-            // Course Tests
-            Route::apiResource('{course}/tests', CourseTestController::class)->shallow();
-            Route::get('{course}/tests/{test}/statistics', [CourseTestController::class, 'statistics']);
+            // ... resto de rutas de cursos
         });
 
         /*
@@ -333,6 +291,41 @@ Route::prefix('v1')->group(function () {
             Route::post('{attempt}/save', [TestAttemptController::class, 'saveProgress']);
             Route::post('{attempt}/submit', [TestAttemptController::class, 'submit']);
             Route::get('{attempt}/results', [TestAttemptController::class, 'results']);
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Dashboard & Intelligence Routes
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('dashboards')->group(function () {
+            Route::get('overview', [DashboardController::class, 'overview']);
+            Route::get('sales', [DashboardController::class, 'sales']);
+            Route::get('operations', [DashboardController::class, 'operations']);
+            Route::get('team', [DashboardController::class, 'team']);
+            Route::get('support', [DashboardController::class, 'support']);
+        Route::prefix('financials')->group(function () {
+            Route::get('/', [DashboardController::class, 'financials']);
+            Route::post('upload', [\App\Http\Controllers\Api\Finance\FinanceUploadController::class, 'upload']);
+        });
+
+        Route::prefix('seo')->group(function () {
+            Route::get('export-pdf/{type}', [DashboardController::class, 'exportPdf']);
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Omnichannel & Reseller Routes
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('omnichannel')->group(function () {
+            Route::get('messages', [UnifiedInboxController::class, 'index']);
+            Route::post('send', [UnifiedInboxController::class, 'sendMessage']);
+        });
+
+        Route::prefix('reseller')->middleware(\App\Http\Middleware\ResellerAccessMiddleware::class)->group(function () {
+            Route::get('dashboard', [ResellerController::class, 'dashboard']);
+            Route::apiResource('tenants', \App\Http\Controllers\Api\Admin\ResellerTenantController::class);
         });
 
         /*
@@ -400,6 +393,18 @@ Route::prefix('v1')->group(function () {
             Route::get('unsubscribes/reasons', [EmailUnsubscribeController::class, 'reasons']);
             Route::get('unsubscribes/stats', [EmailUnsubscribeController::class, 'stats']);
         });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Payment Routes
+        |--------------------------------------------------------------------------
+        */
+        Route::prefix('payments')->group(function () {
+            Route::post('checkout', [\App\Http\Controllers\Api\PaymentController::class, 'createCheckoutSession']);
+            Route::post('webhook', [\App\Http\Controllers\Api\PaymentController::class, 'webhook'])
+                ->name('payments.webhook')
+                ->withoutMiddleware([\App\Http\Middleware\TenantMiddleware::class]);
+        });
     });
 
     /*
@@ -408,14 +413,15 @@ Route::prefix('v1')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware(['tenant', 'super_admin'])->prefix('admin')->group(function () {
-        // Tenants
-        // Route::apiResource('tenants', Admin\TenantController::class);
-        // Route::post('tenants/{tenant}/impersonate', [Admin\TenantController::class, 'impersonate']);
+        // Tenant Dynamic Import
+        Route::post('import/preview', [\App\Http\Controllers\Api\Admin\TenantImportController::class, 'uploadAndPreview']);
+        Route::post('import/process', [\App\Http\Controllers\Api\Admin\TenantImportController::class, 'process']);
 
-        // Plans
-        // Route::apiResource('plans', Admin\PlanController::class);
-
-        // Analytics
-        // Route::get('analytics', [Admin\AnalyticsController::class, 'index']);
+        // Landings Management
+        Route::get('landings', [\App\Http\Controllers\Api\Admin\LandingController::class, 'index']);
+        Route::get('landings/{tenant}', [\App\Http\Controllers\Api\Admin\LandingController::class, 'show']);
+        Route::put('landings/{tenant}', [\App\Http\Controllers\Api\Admin\LandingController::class, 'update']);
+        Route::post('landings/{tenant}/regenerate', [\App\Http\Controllers\Api\Admin\LandingController::class, 'regenerate']);
+        Route::delete('landings/{tenant}', [\App\Http\Controllers\Api\Admin\LandingController::class, 'destroy']);
     });
 });

@@ -94,7 +94,7 @@ export const useSubscriptionsStore = defineStore('subscriptions', {
       }
     },
 
-    // Subscribe to a plan
+    // Subscribe to a plan (direct)
     async subscribe(planId: number, paymentData?: {
       payment_provider?: string
       payment_provider_id?: string
@@ -116,6 +116,25 @@ export const useSubscriptionsStore = defineStore('subscriptions', {
         return subscription
       } catch (error: any) {
         this.error = error.response?.data?.message || 'Error al suscribirse'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Create checkout session (MercadoPago)
+    async createCheckoutSession(planId: number, gateway: string = 'mercadopago') {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await api.post('/payments/checkout', {
+          plan_id: planId,
+          gateway,
+        })
+        return response.data // { url, reference, subscription_id }
+      } catch (error: any) {
+        this.error = error.response?.data?.message || 'Error al crear sesión de pago'
         throw error
       } finally {
         this.loading = false

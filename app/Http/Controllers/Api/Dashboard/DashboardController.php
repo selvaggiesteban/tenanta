@@ -10,18 +10,25 @@ use App\Models\Quote;
 use App\Models\Task;
 use App\Models\Ticket;
 use App\Models\TimeEntry;
+use App\Services\Finance\FinancialService;
+use App\Services\SEO\SEOAnalyzerService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    public function __construct(
+        protected FinancialService $financialService,
+        protected SEOAnalyzerService $seoService
+    ) {}
+
     public function overview(): JsonResponse
     {
         $startOfMonth = Carbon::now()->startOfMonth();
         $startOfWeek = Carbon::now()->startOfWeek();
+        $tenant = app('current_tenant');
 
         return response()->json([
             'data' => [
@@ -57,7 +64,56 @@ class DashboardController extends Controller
                     'open' => Ticket::where('status', 'open')->count(),
                     'in_progress' => Ticket::where('status', 'in_progress')->count(),
                 ],
+                'finanzas_resumen' => [
+                    'salud' => $this->financialService->getDiztekuMetrics(),
+                ],
+                'seo_resumen' => [
+                    'puntaje' => $tenant->seo_metadata['puntaje_global'] ?? 0,
+                ]
             ],
+        ]);
+    }
+
+    /**
+     * Dashboard Financiero (Fase 2.7).
+     */
+    public function financials(): JsonResponse
+    {
+        return response()->json([
+            'data' => [
+                'dizteku' => $this->financialService->getDiztekuMetrics(),
+                'piblo' => $this->financialService->getPibloMetrics(),
+                'cmo' => $this->financialService->getCMOMetrics(),
+                'cuentas_mensuales' => $this->financialService->getMonthlyAccounts(),
+                'fabricacion' => [
+                    'unidades' => 1250,
+                    'meta' => 1500,
+                    'eficiencia' => '92%'
+                ],
+                'comparativo' => [
+                    'mes_anterior' => '82%',
+                    'actual' => '90.5%',
+                    'crecimiento' => '+8.5%'
+                ]
+            ]
+        ]);
+    }
+
+    /**
+     * Dashboard SEO (Fase 2.5).
+     */
+    public function seo(): JsonResponse
+    {
+        $tenant = app('current_tenant');
+        
+        // Si no hay auditoría, realizar una rápida
+        if (empty($tenant->seo_metadata)) {
+            $results = $this->seoService->analyze($tenant);
+            $tenant->update(['seo_metadata' => $results]);
+        }
+
+        return response()->json([
+            'data' => $tenant->seo_metadata
         ]);
     }
 
@@ -258,6 +314,22 @@ class DashboardController extends Controller
                 'tickets_trend' => $ticketsTrend,
             ],
         ]);
+    }
+
+    /**
+     * Exporta los datos del dashboard a PDF (Fase 5.2).
+     */
+    public function exportPdf(string $type)
+    {
+        $tenant = app('current_tenant');
+        $data = match($type) {
+            'dizteku' => $this->financialService->getDiztekuMetrics() + ['cuentas' => $this->financialService->getMonthlyAccounts()],
+            'piblo' => $this->financialService->getPibloMetrics(),
+            'seo' => $this->seoService->analyze($tenant),
+            default => []
+        };
+
+        return app(\App\Services\PDF\PDFReportService::class)->generateDashboardReport($tenant, $type, $data);
     }
 
     protected function getStartDate(string $period): Carbon

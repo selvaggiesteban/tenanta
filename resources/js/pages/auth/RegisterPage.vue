@@ -124,10 +124,29 @@ const handleRegister = async () => {
             </VCol>
 
             <VCol cols="12">
+              <VCheckbox
+                v-model="form.accepted_privacy"
+                label="Acepto las políticas de privacidad y términos del servicio"
+                density="comfortable"
+                :disabled="loading"
+              />
+            </VCol>
+
+            <VCol cols="12" class="mt-n4">
+              <VCheckbox
+                v-model="form.subscribed_to_newsletter"
+                label="Deseo suscribirme a las novedades y actualizaciones por email"
+                density="comfortable"
+                :disabled="loading"
+              />
+            </VCol>
+
+            <VCol cols="12">
               <VBtn
                 block
                 type="submit"
                 :loading="loading"
+                :disabled="!form.accepted_privacy"
               >
                 Crear Cuenta
               </VBtn>
