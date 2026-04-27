@@ -1,121 +1,87 @@
-# 🚀 Tenanta - Multi-Tenant ERP, CRM & LMS Solution
+# 🚀 Tenanta: The AI-Driven Orchestrator SaaS
 
-Tenanta is a comprehensive, multi-tenant enterprise resource planning (ERP) platform designed to streamline business operations. It integrates CRM, Project Management, Learning Management (LMS), Support Ticketing, and AI-driven automation into a single, cohesive ecosystem.
+[![Laravel 11](https://img.shields.io/badge/Laravel-11.x-FF2D20?logo=laravel)](https://laravel.com)
+[![Vue 3](https://img.shields.io/badge/Vue-3.5-4FC08D?logo=vue.js)]()
+[![WebSockets](https://img.shields.io/badge/Real--time-Reverb-blue?logo=laravel)]()
+[![Infrastructure](https://img.shields.io/badge/Proxy-Caddy--SSL-white?logo=caddy)]()
+[![AI-Agnostic](https://img.shields.io/badge/AI-Strategy--Pattern-darkblue?logo=google-gemini)]()
 
----
-
-## 🌟 Key Features
-
-### 🏢 Multi-Tenancy Core
-- **Isolation:** Strict data separation between tenants using `BelongsToTenant` traits.
-- **Branding:** Customizable themes, logos, and branding per tenant.
-- **Subscription Management:** Built-in support for different plans and features.
-
-### 🤝 CRM & Sales
-- **Leads & Pipelines:** Manage sales stages, track conversions, and move leads through custom pipelines.
-- **Client Management:** Centralized database for clients and contacts.
-- **Quotes & Invoicing:** Generate professional PDF quotes and manage items.
-
-### 📅 Project & Task Management
-- **Projects:** Organise work into projects with dedicated members.
-- **Task Tracking:** Kanban-style task management with status updates and assignments.
-- **Time Tracking:** Log hours spent on tasks for accurate billing and productivity analysis.
-
-### 🎓 Learning Management System (LMS)
-- **Course Builder:** Create courses with blocks, topics, and structured content.
-- **Enrollments:** Manage student progress and subscriptions to courses.
-- **Testing:** Integrated test engine with questions, options, and attempt tracking.
-
-### 🎫 Support & Knowledge Base
-- **Ticketing System:** Handle customer inquiries with a robust reply system.
-- **Knowledge Base:** Categorized articles to help users find answers quickly.
-
-### 🤖 AI Integration
-- **AI Service Provider:** Extensible architecture for AI-powered features.
-- **Accountly Transcriber:** Python-based transcription service for processing audio/video content.
+Tenanta is a high-performance **Multi-Tenant SaaS Ecosystem** designed to be the central "Orchestrator Brain" for enterprise-level Digital Marketing, CRM, and LMS operations. It combines deep AI integration, omnichannel communication, and a robust automation engine into a single, secure environment.
 
 ---
 
-## 🛠 Tech Stack
+## 💎 The Tenanta Ecosystem
 
-- **Backend:** [Laravel 11](https://laravel.com/) (PHP 8.2+)
-- **Frontend:** [Vue 3](https://vuejs.org/) with [Vuetify 3](https://vuetifyjs.com/) & [TypeScript](https://www.typescriptlang.org/)
-- **State Management:** [Pinia](https://pinia.vuejs.org/)
-- **Authentication:** [JWT (JSON Web Tokens)](https://jwt.io/)
-- **Permissions:** [Spatie Laravel Permission](https://spatie.be/docs/laravel-permission)
-- **Database:** MySQL/PostgreSQL (Production) | SQLite (Development)
-- **Caching:** Redis
-- **Asset Bundling:** Vite
+Tenanta goes beyond a standard CRM; it is a hub that orchestrates multiple "Satellite" integrations and internal microservices.
+
+### 🧠 1. Headless AI & Agentic RAG
+*   **Agnostic AI Strategy**: Built with a provider-independent architecture (Strategy Pattern). Easily switch between **Gemini, OpenAI, or Claude**.
+*   **BYOK (Bring Your Own Key)**: Scalable financial model where tenants provide their own API keys to drive intensive AI workloads.
+*   **Unified Agentic RAG**: An internal AI overlay capable of querying both **Isolated Vector Databases (PDFs)** and **Structured CRM Data (Leads, Deals)** to provide context-aware answers.
+*   **Human-in-the-Loop**: AI-generated responses for WordPress comments and Chatbots that remain "Pending Review" until approved by the tenant.
+
+### 🛰️ 2. WordPress Satellite Network (WP-Connect)
+Tenanta acts as the "Brain" for multiple WordPress installations via its proprietary **WP-Connect** protocol:
+*   **SEO Audit Polling**: Automated crawler that audits tenant sites daily, reporting technical gaps (Meta, H1, Links) directly to the Tenanta Dashboard.
+*   **Real-time WP Chatbot**: Low-latency conversational widget powered by **Laravel Reverb**.
+*   **Auto-Update Sync**: All satellite plugins are automatically updated across all WordPress sites via our internal GitHub-based distribution engine.
+
+### 🌐 3. CMS & Website Creator
+*   **Dynamic Landing Pages**: A refactored generator that serves static-optimized landing pages through **Internal Hosting**.
+*   **Caddy Auto-SSL**: Seamless **Custom Domain Mapping** for every tenant, with automatic Let's Encrypt certificates managed by a Caddy reverse proxy.
+*   **Block-Based Blog**: An internal institutional blog that stores articles in **Structured JSON format** (Block Editor style), optimized for AI-driven bulk generation.
+
+### ✉️ 4. Marketing & Growth Automation
+*   **Email Warm-up Engine**: A persistent **Redis State Machine** that handles complex warm-up cycles (1-10 min) rotating through multiple SMTP accounts.
+*   **Automated Bounce Handling**: Real-time processing of bounce and unsubscribe events to maintain 99% list hygiene.
+*   **Omnichannel Inbox**: Unified dashboard for WhatsApp Cloud API, Messenger, Telegram, SMS (Twilio), and Google Business Messages.
 
 ---
 
-## 🚀 Getting Started
+## 🏗️ Technical Architecture
+
+*   **Backend**: Laravel 11 + PHP 8.3 (Service-Oriented Architecture).
+*   **Frontend**: Vue 3.5 (Composition API) + Vite + Vuetify 3 (Sneat).
+*   **Infrastructure**: Caddy (Reverse Proxy) + Redis (State Management) + MySQL (Multi-tenant isolation).
+*   **Communications**: Laravel Reverb (WebSockets) + Twilio + Meta APIs.
+*   **Financials**: **Accountly Integration** (Microservice-driven) for real-time financial BI dashboards.
+
+---
+
+## 🚀 Deployment & Installation
 
 ### Prerequisites
-- PHP 8.2+
-- Node.js 20+
-- Composer
-- MySQL or SQLite
+* Docker & Docker Compose
+* PHP 8.3+
+* Node.js 20+
 
-### Installation
-
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd Tenanta
-   ```
-
-2. **Install PHP dependencies:**
-   ```bash
-   composer install
-   ```
-
-3. **Install Frontend dependencies:**
-   ```bash
-   npm install
-   ```
-
-4. **Environment Setup:**
-   ```bash
-   cp .env.example .env
-   php artisan key:generate
-   php artisan jwt:secret
-   ```
-
-5. **Database Setup:**
-   - Create a database and update your `.env` file.
-   - Run migrations and seeders:
-   ```bash
-   php artisan migrate --seed
-   ```
-
-6. **Development Server:**
-   ```bash
-   composer dev
-   ```
-   *This starts Laravel, Vite, and the Queue worker simultaneously.*
+### Quick Start
+1.  **Clone the Repo**: `git clone https://github.com/selvaggiesteban/tenanta.git`
+2.  **Environment Setup**: `cp .env.example .env`
+3.  **Spin up Containers**: `docker-compose up -d`
+4.  **Install Dependencies**:
+    ```bash
+    composer install
+    npm install && npm run build
+    ```
+5.  **Initialize Database**: `php artisan migrate --seed`
 
 ---
 
-## 📂 Project Structure
+## 📅 Development Status (Master Plan)
 
-- `app/Models/`: Eloquent models with multi-tenant logic.
-- `app/Services/AI/`: AI integration logic.
-- `resources/js/`: Vue 3 frontend application.
-- `database/migrations/`: Database schema definitions.
-- `scripts/`: Python utility scripts (e.g., transcription).
+Tenanta is developed following a rigorous **Master Architecture Plan**. Every route, controller, and middleware is pre-planned to ensure zero improvisation.
 
----
-
-## 🔒 Security & Privacy
-
-This project follows strict security standards:
-- **Environment Isolation:** Credentials are kept in `.env` and never committed.
-- **Data Protection:** Tenant data is strictly partitioned.
-- **Authentication:** Secure JWT-based stateless authentication.
+*   [x] **Core CRM & LMS**: Fully Functional.
+*   [x] **Omnichannel Integration**: Live (WhatsApp, Meta, Telegram).
+*   [ ] **WP-Connect Satellites**: In Development.
+*   [ ] **Website Creator (Caddy/Auto-SSL)**: In Development.
+*   [ ] **AI Content Engine (Bulk JSON)**: In Development.
 
 ---
 
 ## 📄 License
+Tenanta is a proprietary SaaS platform developed by **Selvaggi Consultores**. All rights reserved.
 
-This project is licensed under the [MIT License](LICENSE).
+---
+*Building the future of Digital Business Orchestration.*

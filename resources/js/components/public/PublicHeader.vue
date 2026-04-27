@@ -70,11 +70,39 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useWindowScroll } from '@vueuse/core'
 import { usePublicStore } from '@/stores/public'
+import { useI18n } from 'vue-i18n'
 
+const { locale } = useI18n()
 const publicStore = usePublicStore()
+const drawer = ref(false)
+const { y } = useWindowScroll()
+
+const setLocale = (lang: string) => {
+  locale.value = lang
+  localStorage.setItem('locale', lang)
+}
+
+const scrolled = computed(() => y.value > 50)
+
+const navItems = [
+  { path: '/', label: 'Inicio' },
+  { path: '/courses', label: 'Cursos' },
+  { path: '/pricing', label: 'Precios' },
+  { path: '/about', label: 'Nosotros' },
+  { path: '/contact', label: 'Contacto' }
+]
+
+const branding = computed(() => publicStore.branding)
+const tenantName = computed(() => publicStore.tenantName)
+
+onMounted(() => {
+  publicStore.fetchBranding()
+})
+</script>
+cStore = usePublicStore()
 const drawer = ref(false)
 const { y } = useWindowScroll()
 

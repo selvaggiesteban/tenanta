@@ -7,6 +7,12 @@ const router = useRouter()
 const theme = useTheme()
 const drawer = ref(true)
 
+const hasRole = (_role: string) => {
+  // Placeholder for role-based visibility logic
+  // For now, we return true so the links are visible during development
+  return true
+}
+
 const toggleTheme = () => {
   theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
 }
@@ -24,6 +30,40 @@ const navItems = [
   { title: 'Leads', icon: 'mdi-account-search', to: '/crm/leads' },
   { title: 'Pipeline', icon: 'mdi-view-column', to: '/crm/kanban' },
   { title: 'Presupuestos', icon: 'mdi-file-document-outline', to: '/crm/quotes' },
+  {
+    title: 'Marketing Digital',
+    header: true
+  },
+  {
+    title: 'Automatizaciones',
+    icon: 'mdi-robot',
+    children: [
+      { title: 'Blog (Editorial)', to: '/marketing/automations/blog', icon: 'mdi-post' },
+      { title: 'Encuestas', to: '/marketing/automations/surveys', icon: 'mdi-form-select' },
+      { title: 'Form Tester', to: '/marketing/automations/form-tester', icon: 'mdi-test-tube' },
+      { title: 'Generador Legal', to: '/marketing/automations/legal', icon: 'mdi-gavel' },
+      { title: 'GBP Scraper', to: '/marketing/automations/scraper', icon: 'mdi-map-marker-radius' },
+      { title: 'Landing Builder', to: '/marketing/automations/landing-builder', icon: 'mdi-web' },
+      { title: 'WhatsApp Growth', to: '/marketing/automations/whatsapp', icon: 'mdi-whatsapp' },
+      { title: 'SEO Crawler', to: '/marketing/automations/seo', icon: 'mdi-magnify-scan' },
+    ]
+  },
+  {
+    title: 'Campañas',
+    icon: 'mdi-bullhorn-outline',
+    children: [
+      { title: 'Email Marketing', to: '/marketing/campaigns/email', icon: 'mdi-email-fast-outline' },
+      {
+        title: 'Conversiones',
+        icon: 'mdi-tray-arrow-down',
+        children: [
+          { title: 'Email Inbox', to: '/marketing/conversiones/email', icon: 'mdi-email-outline' },
+          { title: 'Messenger', to: '/marketing/conversiones/messenger', icon: 'mdi-facebook-messenger' },
+          { title: 'WhatsApp', to: '/marketing/conversiones/whatsapp', icon: 'mdi-whatsapp' },
+        ]
+      }
+    ]
+  },
   { divider: true },
   { title: 'Operaciones', header: true },
   { title: 'Proyectos', icon: 'mdi-folder-multiple', to: '/projects' },
@@ -63,7 +103,7 @@ const navItems = [
           {{ item.title }}
         </VListSubheader>
         <VListItem
-          v-else
+          v-else-if="!item.roles || item.roles.some(r => hasRole(r))"
           :to="item.to"
           :prepend-icon="item.icon"
           :title="item.title"

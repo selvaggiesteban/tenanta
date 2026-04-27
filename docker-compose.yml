@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # App Tenanta (PHP)
+  # App Tenanta (PHP-FPM)
   app:
     build:
       context: .
@@ -11,28 +11,36 @@ services:
     working_dir: /var/www
     volumes:
       - ./:/var/www
+      - ./storage:/var/www/storage
     networks:
       - tenanta-network
+    depends_on:
+      - db
+      - redis
 
-  # Servidor Web (Nginx)
-  webserver:
-    image: nginx:alpine
-    container_name: tenanta-webserver
+  # Proxy Inverso Caddy (Sustituye a Nginx para Auto-SSL)
+  caddy:
+    image: caddy:latest
+    container_name: tenanta-caddy
     restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
+      - "443:443/udp"
     volumes:
-      - ./:/var/www
-      - ./docker-compose/nginx:/etc/nginx/conf.d/
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./public:/var/www/public
+      - caddy_data:/data
+      - caddy_config:/config
     networks:
       - tenanta-network
 
-  # Base de Datos (MySQL) - Preparado para el salto de SQLite a Producción
+  # Base de Datos (MySQL) - Optimizado para 8GB RAM
   db:
     image: mysql:8.0
     container_name: tenanta-db
     restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password --innodb-buffer-pool-size=2G
     environment:
       MYSQL_DATABASE: ${DB_DATABASE}
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
@@ -40,9 +48,24 @@ services:
       MYSQL_USER: ${DB_USERNAME}
     ports:
       - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - tenanta-network
+
+  # Redis (Caché, Sesiones y Máquina de Estados Email)
+  redis:
+    image: redis:alpine
+    container_name: tenanta-redis
+    restart: unless-stopped
     networks:
       - tenanta-network
 
 networks:
   tenanta-network:
     driver: bridge
+
+volumes:
+  db_data:
+  caddy_data:
+  caddy_config:

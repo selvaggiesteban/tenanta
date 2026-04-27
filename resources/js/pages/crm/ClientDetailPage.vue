@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import api from '@/api'
 
 const route = useRoute()
@@ -9,6 +11,8 @@ const client = ref<any>(null)
 const loading = ref(true)
 const contactDialog = ref(false)
 const editingContact = ref<any>(null)
+const contactMessages = ref<any[]>([])
+const loadingMessages = ref(false)
 
 const contactForm = ref({
   name: '',
@@ -17,11 +21,29 @@ const contactForm = ref({
   position: '',
 })
 
+const fetchContactMessages = async (contactId: number) => {
+  loadingMessages.value = true
+  try {
+    const response = await api.get(`/omnichannel/contacts/${contactId}/messages`)
+    contactMessages.value = response.data.data
+  } catch (e) {
+    console.error('Error fetching messages:', e)
+  } finally {
+    loadingMessages.value = false
+  }
+}
+
 const fetchClient = async () => {
   loading.value = true
   try {
     const response = await api.get(`/crm/clients/${clientId.value}`)
     client.value = response.data.data
+    
+    // Load messages for primary contact
+    const primary = client.value.contacts?.find((c: any) => c.is_primary)
+    if (primary) {
+      fetchContactMessages(primary.id)
+    }
   } catch (e) {
     console.error('Error fetching client:', e)
     router.push({ name: 'clients' })
@@ -62,6 +84,16 @@ const makePrimary = async (contact: any) => {
   } catch (e) {
     console.error('Error:', e)
   }
+}
+
+const getChannelIcon = (type?: string) => {
+  const icons: any = { 
+    whatsapp: 'mdi-whatsapp', 
+    messenger: 'mdi-facebook-messenger', 
+    email_smtp: 'mdi-email', 
+    email_gmail: 'mdi-google' 
+  }
+  return icons[type || ''] || 'mdi-chat'
 }
 
 onMounted(fetchClient)
@@ -183,6 +215,49 @@ onMounted(fetchClient)
             </VList>
             <div v-else class="text-center text-medium-emphasis py-6">
               No hay contactos registrados
+            </div>
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
+
+    <VRow class="mt-4">
+      <VCol cols="12">
+        <VCard>
+          <VCardTitle class="d-flex align-center">
+            <VIcon icon="mdi-chat-processing-outline" class="me-2" />
+            Historial de Mensajes Omnicanal
+          </VCardTitle>
+          <VCardText>
+            <div v-if="loadingMessages" class="text-center py-6">
+              <VProgressCircular indeterminate color="primary" size="24" />
+            </div>
+            <VList v-else-if="contactMessages.length > 0">
+              <VListItem
+                v-for="msg in contactMessages"
+                :key="msg.id"
+                :prepend-icon="msg.direction === 'inbound' ? 'mdi-arrow-bottom-left' : 'mdi-arrow-top-right'"
+                :title="msg.content"
+              >
+                <template #prepend>
+                  <VIcon 
+                    :icon="msg.direction === 'inbound' ? 'mdi-message-arrow-left' : 'mdi-message-arrow-right'"
+                    :color="msg.direction === 'inbound' ? 'success' : 'primary'"
+                    class="me-3"
+                  />
+                </template>
+                <VListItemSubtitle class="d-flex align-center">
+                  <VIcon 
+                    :icon="getChannelIcon(msg.conversation?.channel?.type)" 
+                    size="x-small" 
+                    class="me-1" 
+                  />
+                  {{ msg.conversation?.channel?.type }} • {{ new Date(msg.created_at).toLocaleString() }}
+                </VListItemSubtitle>
+              </VListItem>
+            </VList>
+            <div v-else class="text-center text-medium-emphasis py-6">
+              No hay historial de mensajes para este contacto.
             </div>
           </VCardText>
         </VCard>

@@ -9,6 +9,8 @@ const stats = ref({
   leads: 0,
   projects: 0,
   quotes: 0,
+  courses: 0,
+  enrollments: 0,
 })
 
 const recentClients = ref([])
@@ -17,11 +19,13 @@ const loading = ref(true)
 
 onMounted(async () => {
   try {
-    const [clientsRes, leadsRes, projectsRes, quotesRes] = await Promise.all([
+    const [clientsRes, leadsRes, projectsRes, quotesRes, coursesRes, enrollmentsRes] = await Promise.all([
       api.get('/crm/clients', { params: { per_page: 5 } }),
       api.get('/crm/leads', { params: { per_page: 5 } }),
       api.get('/operations/projects', { params: { per_page: 5 } }),
       api.get('/crm/quotes', { params: { per_page: 5 } }),
+      api.get('/courses'),
+      api.get('/enrollments'),
     ])
 
     stats.value = {
@@ -29,6 +33,8 @@ onMounted(async () => {
       leads: leadsRes.data.meta?.total || 0,
       projects: projectsRes.data.meta?.total || 0,
       quotes: quotesRes.data.meta?.total || 0,
+      courses: coursesRes.data.meta?.total || coursesRes.data.length || 0,
+      enrollments: enrollmentsRes.data.meta?.total || enrollmentsRes.data.length || 0,
     }
 
     recentClients.value = clientsRes.data.data || []
@@ -129,6 +135,42 @@ onMounted(async () => {
                 </p>
                 <h4 class="text-h4 font-weight-bold">
                   {{ stats.quotes }}
+                </h4>
+              </div>
+            </div>
+          </VCard>
+        </VCol>
+
+        <VCol cols="12" sm="6" lg="3">
+          <VCard class="pa-4">
+            <div class="d-flex align-center">
+              <VAvatar color="secondary" variant="tonal" size="48" class="me-4">
+                <VIcon icon="mdi-book-open-variant" size="24" />
+              </VAvatar>
+              <div>
+                <p class="text-body-2 text-medium-emphasis mb-1">
+                  Cursos Activos
+                </p>
+                <h4 class="text-h4 font-weight-bold">
+                  {{ stats.courses }}
+                </h4>
+              </div>
+            </div>
+          </VCard>
+        </VCol>
+
+        <VCol cols="12" sm="6" lg="3">
+          <VCard class="pa-4">
+            <div class="d-flex align-center">
+              <VAvatar color="error" variant="tonal" size="48" class="me-4">
+                <VIcon icon="mdi-school" size="24" />
+              </VAvatar>
+              <div>
+                <p class="text-body-2 text-medium-emphasis mb-1">
+                  Alumnos
+                </p>
+                <h4 class="text-h4 font-weight-bold">
+                  {{ stats.enrollments }}
                 </h4>
               </div>
             </div>

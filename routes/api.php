@@ -32,11 +32,42 @@ use App\Http\Controllers\Api\Marketing\EmailListController;
 use App\Http\Controllers\Api\Marketing\EmailTrackingController;
 use App\Http\Controllers\Api\Marketing\EmailUnsubscribeController;
 use App\Http\Controllers\Api\Omnichannel\UnifiedInboxController;
+use App\Http\Controllers\Api\Omnichannel\WebhookOrchestratorController;
 use App\Http\Controllers\Api\Admin\ResellerController;
+use App\Http\Controllers\Api\PublicController;
+use App\Http\Controllers\Api\PublicInquiryController;
+use App\Http\Controllers\Api\CRM\TeamController;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes
+| Webhook & Callback Routes (Public)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('webhooks')->group(function () {
+    // Meta (WhatsApp/Messenger)
+    Route::match(['get', 'post'], 'meta', [WebhookOrchestratorController::class, 'handleMeta'])
+        ->middleware('meta.signature');
+
+    // Telegram
+    Route::post('telegram/{token}', [WebhookOrchestratorController::class, 'handleTelegram']);
+
+    // Twilio (SMS)
+    Route::post('twilio', [WebhookOrchestratorController::class, 'handleTwilio']);
+
+    // Google Business Messages
+    Route::post('google-business', [WebhookOrchestratorController::class, 'handleGoogleBusinessMessages']);
+
+    // X (Twitter)
+    Route::match(['get', 'post'], 'x', [WebhookOrchestratorController::class, 'handleX']);
+
+    // Google OAuth Callback (GBM & Email Hub)
+    Route::get('google/callback', [WebhookOrchestratorController::class, 'handleGoogleOAuthCallback'])
+        ->name('webhooks.google.callback');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Protected Routes
 |--------------------------------------------------------------------------
 |
 | Tenanta API v1 Routes
@@ -52,39 +83,33 @@ Route::prefix('v1')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('public')->group(function () {
-        // Branding for current session (if any)
         Route::get('branding', [PublicController::class, 'branding']);
-
-        // Branding by tenant slug (for public pages)
         Route::get('branding/{slug}', [BrandingController::class, 'show']);
-
-        // Public course catalog
         Route::get('courses', [PublicController::class, 'courses']);
         Route::get('courses/{slug}', [CourseController::class, 'showBySlug']);
-
-        // Public subscription plans
         Route::get('plans', [PublicController::class, 'plans']);
-
-        // Public Inquiries
         Route::post('inquiry', [PublicInquiryController::class, 'store']);
+
+        // Widget Routes
+        Route::get('widget/settings/{tenant_id}', [\App\Http\Controllers\Api\Omnichannel\WidgetController::class, 'settings']);
+        Route::post('widget/init', [\App\Http\Controllers\Api\Omnichannel\WidgetController::class, 'init']);
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::post('widget/message', [\App\Http\Controllers\Api\Omnichannel\WidgetController::class, 'sendMessage']);
+            Route::get('widget/session', [\App\Http\Controllers\Api\Omnichannel\WidgetController::class, 'getSession']);
+        });
     });
 
     /*
     |--------------------------------------------------------------------------
-    | Email Tracking Routes (no authentication - accessed via email links)
+    | Email Tracking Routes
     |--------------------------------------------------------------------------
     */
     Route::prefix('email')->name('email.')->group(function () {
-        Route::get('t/o/{recipient}/{hash}', [EmailTrackingController::class, 'trackOpen'])
-            ->name('track.open');
-        Route::get('t/c/{recipient}/{hash}/{url}', [EmailTrackingController::class, 'trackClick'])
-            ->name('track.click');
-        Route::get('unsubscribe/{recipient}/{hash}', [EmailTrackingController::class, 'unsubscribeForm'])
-            ->name('unsubscribe.form');
-        Route::post('unsubscribe/{recipient}/{hash}', [EmailTrackingController::class, 'unsubscribe'])
-            ->name('unsubscribe');
-        Route::post('webhook/{provider}', [EmailTrackingController::class, 'webhook'])
-            ->name('webhook');
+        Route::get('t/o/{recipient}/{hash}', [EmailTrackingController::class, 'trackOpen'])->name('track.open');
+        Route::get('t/c/{recipient}/{hash}/{url}', [EmailTrackingController::class, 'trackClick'])->name('track.click');
+        Route::get('unsubscribe/{recipient}/{hash}', [EmailTrackingController::class, 'unsubscribeForm'])->name('unsubscribe.form');
+        Route::post('unsubscribe/{recipient}/{hash}', [EmailTrackingController::class, 'unsubscribe'])->name('unsubscribe');
+        Route::post('webhook/{provider}', [EmailTrackingController::class, 'webhook'])->name('webhook');
     });
 
     /*
@@ -93,11 +118,9 @@ Route::prefix('v1')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('auth')->group(function () {
-        // Public routes
         Route::post('login', [AuthController::class, 'login']);
         Route::post('register', [AuthController::class, 'register']);
 
-        // Protected auth routes
         Route::middleware('tenant')->group(function () {
             Route::get('me', [AuthController::class, 'me']);
             Route::post('logout', [AuthController::class, 'logout']);
@@ -112,36 +135,18 @@ Route::prefix('v1')->group(function () {
     */
     Route::middleware('tenant')->group(function () {
 
-        /*
-        |--------------------------------------------------------------------------
-        | Team Routes
-        |--------------------------------------------------------------------------
-        */
         Route::apiResource('teams', TeamController::class);
         Route::post('teams/{team}/members', [TeamController::class, 'addMember']);
         Route::delete('teams/{team}/members/{user}', [TeamController::class, 'removeMember']);
 
-        /*
-        |--------------------------------------------------------------------------
-        | CRM Routes
-        |--------------------------------------------------------------------------
-        */
-        Route::prefix('crm')->middleware(\App\Http\Middleware\CRMReadAccessMiddleware::class)->group(function () {
         Route::prefix('crm')->group(function () {
-            // Clients
             Route::apiResource('clients', ClientController::class);
             Route::get('clients/{client}/contacts', [ClientController::class, 'contacts']);
-
-            // Contacts
             Route::apiResource('contacts', ContactController::class);
             Route::patch('contacts/{contact}/make-primary', [ContactController::class, 'makePrimary']);
-
-            // Leads
             Route::apiResource('leads', LeadController::class);
             Route::post('leads/{lead}/convert', [LeadController::class, 'convert']);
             Route::patch('leads/{lead}/move-stage', [LeadController::class, 'moveStage']);
-
-            // Quotes
             Route::apiResource('quotes', QuoteController::class);
             Route::patch('quotes/{quote}/send', [QuoteController::class, 'send']);
             Route::patch('quotes/{quote}/accept', [QuoteController::class, 'accept']);
@@ -149,28 +154,18 @@ Route::prefix('v1')->group(function () {
             Route::post('quotes/{quote}/duplicate', [QuoteController::class, 'duplicate']);
             Route::get('quotes/{quote}/pdf', [QuoteController::class, 'pdf']);
             Route::get('quotes/{quote}/download', [QuoteController::class, 'download']);
-
-            // Pipelines
             Route::apiResource('pipelines', PipelineController::class);
             Route::patch('pipelines/{pipeline}/make-default', [PipelineController::class, 'makeDefault']);
             Route::post('pipelines/{pipeline}/stages', [PipelineController::class, 'storeStage']);
             Route::put('pipelines/{pipeline}/stages/{stage}', [PipelineController::class, 'updateStage']);
             Route::delete('pipelines/{pipeline}/stages/{stage}', [PipelineController::class, 'destroyStage']);
             Route::patch('pipelines/{pipeline}/stages/reorder', [PipelineController::class, 'reorderStages']);
-
-            // Import
             Route::post('import/preview', [ImportController::class, 'preview']);
             Route::post('import', [ImportController::class, 'import']);
             Route::get('import/template/{type}', [ImportController::class, 'template']);
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Operations Routes
-        |--------------------------------------------------------------------------
-        */
         Route::prefix('operations')->group(function () {
-            // Projects
             Route::apiResource('projects', ProjectController::class);
             Route::get('projects/{project}/tasks', [ProjectController::class, 'tasks']);
             Route::patch('projects/{project}/complete', [ProjectController::class, 'complete']);
@@ -178,49 +173,28 @@ Route::prefix('v1')->group(function () {
             Route::post('projects/{project}/members', [ProjectController::class, 'addMember']);
             Route::put('projects/{project}/members/{user}', [ProjectController::class, 'updateMember']);
             Route::delete('projects/{project}/members/{user}', [ProjectController::class, 'removeMember']);
-
-            // Tasks
             Route::apiResource('tasks', TaskController::class);
             Route::patch('tasks/{task}/start', [TaskController::class, 'start']);
             Route::patch('tasks/{task}/submit', [TaskController::class, 'submit']);
             Route::patch('tasks/{task}/approve', [TaskController::class, 'approve']);
             Route::patch('tasks/{task}/reject', [TaskController::class, 'reject']);
             Route::patch('tasks/{task}/complete', [TaskController::class, 'complete']);
-            // ... resto de rutas de tareas
             Route::post('tasks/reorder', [TaskController::class, 'reorder']);
             Route::post('tasks/{task}/dependencies', [TaskController::class, 'addDependency']);
             Route::delete('tasks/{task}/dependencies/{dependency}', [TaskController::class, 'removeDependency']);
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Time Tracking Routes
-        |--------------------------------------------------------------------------
-        */
         Route::prefix('tracking')->group(function () {
-            // Timer
             Route::get('timer', [TimerController::class, 'current']);
             Route::post('timer/start', [TimerController::class, 'start']);
             Route::post('timer/stop', [TimerController::class, 'stop']);
             Route::post('timer/cancel', [TimerController::class, 'cancel']);
             Route::patch('timer', [TimerController::class, 'update']);
-
-            // Time Entries
             Route::apiResource('entries', TimeEntryController::class);
             Route::get('summary', [TimeEntryController::class, 'summary']);
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Support Routes (Tickets)
-        |--------------------------------------------------------------------------
-        */
-        Route::prefix('support')->middleware(\App\Http\Middleware\TicketAccessMiddleware::class)->group(function () {
-        | Support Routes
-        |--------------------------------------------------------------------------
-        */
         Route::prefix('support')->group(function () {
-            // Tickets
             Route::apiResource('tickets', TicketController::class);
             Route::post('tickets/{ticket}/reply', [TicketController::class, 'reply']);
             Route::post('tickets/{ticket}/assign', [TicketController::class, 'assign']);
@@ -228,8 +202,6 @@ Route::prefix('v1')->group(function () {
             Route::patch('tickets/{ticket}/close', [TicketController::class, 'close']);
             Route::patch('tickets/{ticket}/reopen', [TicketController::class, 'reopen']);
             Route::get('tickets-stats', [TicketController::class, 'stats']);
-
-            // Knowledge Base
             Route::apiResource('kb/categories', KbCategoryController::class);
             Route::apiResource('kb/articles', KbArticleController::class);
             Route::patch('kb/articles/{kbArticle}/publish', [KbArticleController::class, 'publish']);
@@ -237,36 +209,20 @@ Route::prefix('v1')->group(function () {
             Route::post('kb/articles/{kbArticle}/feedback', [KbArticleController::class, 'feedback']);
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | LMS (Courses) Routes
-        |--------------------------------------------------------------------------
-        */
         Route::prefix('courses')->middleware(\App\Http\Middleware\LMSAccessMiddleware::class)->group(function () {
-            // Courses CRUD (admin/manager/teacher/member read)
             Route::apiResource('/', CourseController::class)->parameters(['' => 'course']);
             Route::post('{course}/publish', [CourseController::class, 'publish']);
-            // ... resto de rutas de cursos
-        | Chat Routes
-        |--------------------------------------------------------------------------
-        */
+        });
+
         Route::prefix('chat')->group(function () {
-            // Conversations
             Route::get('conversations', [ChatController::class, 'index']);
             Route::post('conversations', [ChatController::class, 'store']);
             Route::get('conversations/{conversation}', [ChatController::class, 'show']);
             Route::delete('conversations/{conversation}', [ChatController::class, 'destroy']);
-
-            // Messages
             Route::post('conversations/{conversation}/messages', [ChatController::class, 'sendMessage']);
             Route::post('conversations/{conversation}/stream', [ChatController::class, 'streamMessage']);
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Enrollments Routes
-        |--------------------------------------------------------------------------
-        */
         Route::prefix('enrollments')->group(function () {
             Route::get('/', [EnrollmentController::class, 'index']);
             Route::post('/', [EnrollmentController::class, 'store']);
@@ -275,22 +231,12 @@ Route::prefix('v1')->group(function () {
             Route::get('{enrollment}/content', [EnrollmentController::class, 'courseContent']);
             Route::post('{enrollment}/topics/{topic}/complete', [EnrollmentController::class, 'markTopicCompleted']);
             Route::post('{enrollment}/topics/{topic}/progress', [EnrollmentController::class, 'updateTopicProgress']);
-
-            // Check course access
             Route::get('check-access/{course}', [EnrollmentController::class, 'checkAccess']);
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Subscriptions Routes
-        |--------------------------------------------------------------------------
-        */
         Route::prefix('subscriptions')->group(function () {
-            // Subscription Plans (admin)
             Route::apiResource('plans', SubscriptionPlanController::class);
             Route::post('plans/{plan}/toggle-active', [SubscriptionPlanController::class, 'toggleActive']);
-
-            // User Subscriptions
             Route::get('/', [SubscriptionController::class, 'index']);
             Route::post('/', [SubscriptionController::class, 'store']);
             Route::get('current', [SubscriptionController::class, 'current']);
@@ -300,11 +246,6 @@ Route::prefix('v1')->group(function () {
             Route::post('{subscription}/change-plan', [SubscriptionController::class, 'changePlan']);
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Test Attempts Routes
-        |--------------------------------------------------------------------------
-        */
         Route::prefix('test-attempts')->group(function () {
             Route::get('/', [TestAttemptController::class, 'index']);
             Route::post('tests/{test}/start', [TestAttemptController::class, 'start']);
@@ -316,18 +257,14 @@ Route::prefix('v1')->group(function () {
             Route::get('{attempt}/results', [TestAttemptController::class, 'results']);
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Dashboard & Intelligence Routes
-        | Dashboard Routes
-        |--------------------------------------------------------------------------
-        */
         Route::prefix('dashboards')->group(function () {
             Route::get('overview', [DashboardController::class, 'overview']);
             Route::get('sales', [DashboardController::class, 'sales']);
             Route::get('operations', [DashboardController::class, 'operations']);
             Route::get('team', [DashboardController::class, 'team']);
             Route::get('support', [DashboardController::class, 'support']);
+        });
+
         Route::prefix('financials')->group(function () {
             Route::get('/', [DashboardController::class, 'financials']);
             Route::post('upload', [\App\Http\Controllers\Api\Finance\FinanceUploadController::class, 'upload']);
@@ -337,13 +274,18 @@ Route::prefix('v1')->group(function () {
             Route::get('export-pdf/{type}', [DashboardController::class, 'exportPdf']);
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Omnichannel & Reseller Routes
-        |--------------------------------------------------------------------------
-        */
         Route::prefix('omnichannel')->group(function () {
-            Route::get('messages', [UnifiedInboxController::class, 'index']);
+            Route::apiResource('channels', \App\Http\Controllers\Api\Omnichannel\ChannelController::class);
+            Route::post('channels/{channel}/toggle-active', [\App\Http\Controllers\Api\Omnichannel\ChannelController::class, 'toggleActive']);
+            Route::get('analytics', [UnifiedInboxController::class, 'analytics']);
+            Route::get('conversations', [UnifiedInboxController::class, 'index']);
+            Route::get('conversations/{conversation}/messages', [UnifiedInboxController::class, 'messages']);
+            Route::post('conversations/{conversation}/link-contact', [UnifiedInboxController::class, 'linkContact']);
+            Route::post('conversations/{conversation}/assign-agent', [UnifiedInboxController::class, 'assignAgent']);
+            Route::get('conversations/{conversation}/suggest-response', [UnifiedInboxController::class, 'suggestResponse']);
+            Route::post('emit-typing', [UnifiedInboxController::class, 'emitTyping']);
+            Route::apiResource('canned-responses', \App\Http\Controllers\Api\Omnichannel\CannedResponseController::class);
+            Route::get('contacts/{contact}/messages', [\App\Http\Controllers\Api\Omnichannel\ContactMessagesController::class, 'index']);
             Route::post('send', [UnifiedInboxController::class, 'sendMessage']);
         });
 
@@ -352,11 +294,6 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('tenants', \App\Http\Controllers\Api\Admin\ResellerTenantController::class);
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Branding Routes
-        |--------------------------------------------------------------------------
-        */
         Route::prefix('branding')->group(function () {
             Route::get('/', [BrandingController::class, 'index']);
             Route::put('/', [BrandingController::class, 'update']);
@@ -365,32 +302,12 @@ Route::prefix('v1')->group(function () {
             Route::get('/currencies', [BrandingController::class, 'currencies']);
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Settings Routes
-        |--------------------------------------------------------------------------
-        */
-        Route::prefix('settings')->group(function () {
-            // Route::get('profile', [Settings\ProfileController::class, 'show']);
-            // Route::put('profile', [Settings\ProfileController::class, 'update']);
-        });
-
-        /*
-        |--------------------------------------------------------------------------
-        | Marketing Routes
-        |--------------------------------------------------------------------------
-        */
         Route::prefix('marketing')->group(function () {
-            // Email Templates
-            Route::apiResource('templates', EmailTemplateController::class)
-                ->parameters(['templates' => 'emailTemplate']);
+            Route::apiResource('templates', EmailTemplateController::class)->parameters(['templates' => 'emailTemplate']);
             Route::post('templates/{emailTemplate}/duplicate', [EmailTemplateController::class, 'duplicate']);
             Route::post('templates/{emailTemplate}/preview', [EmailTemplateController::class, 'preview']);
             Route::get('templates-categories', [EmailTemplateController::class, 'categories']);
-
-            // Email Campaigns
-            Route::apiResource('campaigns', EmailCampaignController::class)
-                ->parameters(['campaigns' => 'emailCampaign']);
+            Route::apiResource('campaigns', EmailCampaignController::class)->parameters(['campaigns' => 'emailCampaign']);
             Route::post('campaigns/{emailCampaign}/duplicate', [EmailCampaignController::class, 'duplicate']);
             Route::get('campaigns/{emailCampaign}/recipients', [EmailCampaignController::class, 'recipients']);
             Route::post('campaigns/{emailCampaign}/recipients', [EmailCampaignController::class, 'addRecipients']);
@@ -400,67 +317,35 @@ Route::prefix('v1')->group(function () {
             Route::post('campaigns/{emailCampaign}/send', [EmailCampaignController::class, 'send']);
             Route::get('campaigns/{emailCampaign}/stats', [EmailCampaignController::class, 'stats']);
             Route::post('campaigns/{emailCampaign}/preview', [EmailCampaignController::class, 'preview']);
-
-            // Email Lists
-            Route::apiResource('lists', EmailListController::class)
-                ->parameters(['lists' => 'emailList']);
+            Route::apiResource('lists', EmailListController::class)->parameters(['lists' => 'emailList']);
             Route::get('lists/{emailList}/subscribers', [EmailListController::class, 'subscribers']);
             Route::post('lists/{emailList}/subscribers', [EmailListController::class, 'addSubscribers']);
             Route::post('lists/{emailList}/import', [EmailListController::class, 'importSubscribers']);
             Route::delete('lists/{emailList}/subscribers/{subscriber}', [EmailListController::class, 'removeSubscriber']);
             Route::post('lists/{emailList}/sync', [EmailListController::class, 'syncDynamic']);
             Route::get('lists/{emailList}/export', [EmailListController::class, 'export']);
-
-            // Unsubscribes
             Route::get('unsubscribes', [EmailUnsubscribeController::class, 'index']);
             Route::post('unsubscribes/resubscribe', [EmailUnsubscribeController::class, 'resubscribe']);
             Route::get('unsubscribes/reasons', [EmailUnsubscribeController::class, 'reasons']);
             Route::get('unsubscribes/stats', [EmailUnsubscribeController::class, 'stats']);
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Payment Routes
-        |--------------------------------------------------------------------------
-        */
         Route::prefix('payments')->group(function () {
             Route::post('checkout', [\App\Http\Controllers\Api\PaymentController::class, 'createCheckoutSession']);
             Route::post('webhook', [\App\Http\Controllers\Api\PaymentController::class, 'webhook'])
                 ->name('payments.webhook')
-                ->withoutMiddleware([\App\Http\Middleware\TenantMiddleware::class]);
-        });
-            // Route::get('branding', [Settings\BrandingController::class, 'show']);
-            // Route::put('branding', [Settings\BrandingController::class, 'update']);
-            // Route::get('profile', [Settings\ProfileController::class, 'show']);
-            // Route::put('profile', [Settings\ProfileController::class, 'update']);
+                ->withoutMiddleware([\App\Http\Middleware\TenantMiddleware::class])
+                ->middleware(['mp.signature']);
         });
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Admin Routes (Super Admin only)
-    |--------------------------------------------------------------------------
-    */
     Route::middleware(['tenant', 'super_admin'])->prefix('admin')->group(function () {
-        // Tenant Dynamic Import
         Route::post('import/preview', [\App\Http\Controllers\Api\Admin\TenantImportController::class, 'uploadAndPreview']);
         Route::post('import/process', [\App\Http\Controllers\Api\Admin\TenantImportController::class, 'process']);
-
-        // Landings Management
         Route::get('landings', [\App\Http\Controllers\Api\Admin\LandingController::class, 'index']);
         Route::get('landings/{tenant}', [\App\Http\Controllers\Api\Admin\LandingController::class, 'show']);
         Route::put('landings/{tenant}', [\App\Http\Controllers\Api\Admin\LandingController::class, 'update']);
         Route::post('landings/{tenant}/regenerate', [\App\Http\Controllers\Api\Admin\LandingController::class, 'regenerate']);
         Route::delete('landings/{tenant}', [\App\Http\Controllers\Api\Admin\LandingController::class, 'destroy']);
-        // Tenants
-        // Route::apiResource('tenants', Admin\TenantController::class);
-        // Route::post('tenants/{tenant}/impersonate', [Admin\TenantController::class, 'impersonate']);
-
-        // Plans
-        // Route::apiResource('plans', Admin\PlanController::class);
-
-        // Analytics
-        // Route::get('analytics', [Admin\AnalyticsController::class, 'index']);
     });
 });
-            

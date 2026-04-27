@@ -63,23 +63,23 @@ const handleLearnMore = () => {
       <div class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-50 via-white to-white opacity-70"></div>
       
       <span class="text-indigo-600 font-bold tracking-wider uppercase text-sm mb-4 block">
-        🚀 Tu ventaja competitiva digital
+        {{ $t('public.home.hero.badge') }}
       </span>
       
       <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 mb-6 max-w-4xl mx-auto leading-tight">
-        Haz que te encuentren y <span class="text-indigo-600">multiplica tus ventas</span>.
+        {{ $t('public.home.hero.title') }} <span class="text-indigo-600">{{ $t('public.home.hero.title_highlight') }}</span>.
       </h1>
       
       <p class="mt-4 text-xl text-gray-600 max-w-3xl mx-auto mb-10 leading-relaxed">
-        ¡Felicidades! Encontraste el atajo para dominar tu mercado local. Automatiza tu presencia web, captura prospectos por WhatsApp y controla tus finanzas en una sola plataforma.
+        {{ $t('public.home.hero.subtitle') }}
       </p>
       
       <div class="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-md mx-auto">
         <button @click="handleHire" class="w-full sm:w-auto px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-lg">
-          Ver Planes y Contratar
+          {{ $t('public.home.hero.primary_btn') }}
         </button>
         <button @click="handleLearnMore" class="w-full sm:w-auto px-8 py-4 bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-700 font-bold rounded-xl transition-all duration-300 text-lg">
-          Saber más
+          {{ $t('public.home.hero.secondary_btn') }}
         </button>
       </div>
 

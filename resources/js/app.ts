@@ -5,12 +5,16 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import router from './router'
 import vuetify from './plugins/vuetify'
 import i18n from './plugins/i18n'
+import VueApexCharts from "vue3-apexcharts";
 
 // Styles
 import '@mdi/font/css/materialdesignicons.css'
 import '@styles/main.scss'
 
 const app = createApp(App)
+
+// ApexCharts
+app.use(VueApexCharts)
 
 // Pinia
 const pinia = createPinia()

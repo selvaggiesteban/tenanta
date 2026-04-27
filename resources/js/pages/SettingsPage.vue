@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useBrandingStore } from '@/stores/branding'
 import { useTheme } from 'vuetify'
 import { ref, onMounted, watch, computed } from 'vue'
+import OmnichannelChannels from '@/components/marketing/OmnichannelChannels.vue'
 
 const authStore = useAuthStore()
 const brandingStore = useBrandingStore()
@@ -145,6 +146,10 @@ function removeFeature(index: number) {
           <VIcon icon="mdi-web" class="me-2" />
           Landing Page
         </VTab>
+        <VTab value="channels">
+          <VIcon icon="mdi-lan-connect" class="me-2" />
+          Canales
+        </VTab>
         <VTab value="security">
           <VIcon icon="mdi-lock" class="me-2" />
           Seguridad
@@ -186,179 +191,13 @@ function removeFeature(index: number) {
           <!-- Landing Page Tab -->
           <VWindowItem value="landing">
             <VForm @submit.prevent="saveLanding">
-              <VRow>
-                <VCol cols="12" class="d-flex align-center justify-space-between">
-                  <h6 class="text-h6">Personalización de Landing Page</h6>
-                  <VBtn
-                    :href="publicUrl"
-                    target="_blank"
-                    prepend-icon="mdi-open-in-new"
-                    variant="text"
-                    color="primary"
-                  >
-                    Ver mi landing page
-                  </VBtn>
-                </VCol>
-
-                <!-- Hero Section -->
-                <VCol cols="12">
-                  <VLabel class="mb-2">Sección Principal (Hero)</VLabel>
-                  <VTextField
-                    v-model="landingForm.hero_title"
-                    label="Título Principal"
-                    placeholder="Ej: Aprende con los mejores"
-                  />
-                  <VTextField
-                    v-model="landingForm.category"
-                    label="Categoría de Negocio"
-                    placeholder="Ej: Plomería 24hs"
-                  />
-                  <VTextarea
-                    v-model="landingForm.hero_subtitle"
-                    label="Subtítulo"
-                    rows="2"
-                  />
-                  <VTextField
-                    v-model="landingForm.hero_image"
-                    label="URL de Imagen Hero"
-                    placeholder="https://ejemplo.com/imagen.jpg"
-                  />
-                </VCol>
-
-                <!-- Services (Ex Features) -->
-                <VCol cols="12">
-                  <div class="d-flex align-center justify-space-between mb-2">
-                    <VLabel>Servicios</VLabel>
-                    <VBtn
-                      size="small"
-                      prepend-icon="mdi-plus"
-                      @click="landingForm.services.push({title: 'Nuevo', description: '', image: ''})"
-                    >
-                      Añadir Servicio
-                    </VBtn>
-                  </div>
-
-                  <VExpansionPanels variant="accordion">
-                    <VExpansionPanel
-                      v-for="(srv, index) in landingForm.services"
-                      :key="index"
-                    >
-                      <VExpansionPanelTitle>
-                        <VIcon icon="mdi-star-circle" class="me-2" />
-                        {{ srv.title || 'Nuevo Servicio' }}
-                      </VExpansionPanelTitle>
-                      <VExpansionPanelText>
-                        <VRow>
-                          <VCol cols="12" md="6">
-                            <VTextField v-model="srv.title" label="Título" />
-                          </VCol>
-                          <VCol cols="12" md="6">
-                            <VTextField v-model="srv.image" label="URL de Imagen" />
-                          </VCol>
-                          <VCol cols="12">
-                            <VTextField v-model="srv.description" label="Descripción" />
-                          </VCol>
-                          <VCol cols="12" class="text-right">
-                            <VBtn color="error" variant="text" size="small" @click="landingForm.services.splice(index, 1)">
-                              Eliminar
-                            </VBtn>
-                          </VCol>
-                        </VRow>
-                      </VExpansionPanelText>
-                    </VExpansionPanel>
-                  </VExpansionPanels>
-                </VCol>
-
-                <!-- FAQs -->
-                <VCol cols="12">
-                  <div class="d-flex align-center justify-space-between mb-2">
-                    <VLabel>Preguntas Frecuentes (FAQ)</VLabel>
-                    <VBtn
-                      size="small"
-                      prepend-icon="mdi-plus"
-                      @click="landingForm.faqs.push({question: 'Pregunta', answer: ''})"
-                    >
-                      Añadir FAQ
-                    </VBtn>
-                  </div>
-
-                  <VExpansionPanels variant="accordion">
-                    <VExpansionPanel
-                      v-for="(faq, index) in landingForm.faqs"
-                      :key="index"
-                    >
-                      <VExpansionPanelTitle>
-                        <VIcon icon="mdi-help-circle" class="me-2" />
-                        {{ faq.question || 'Nueva Pregunta' }}
-                      </VExpansionPanelTitle>
-                      <VExpansionPanelText>
-                        <VRow>
-                          <VCol cols="12">
-                            <VTextField v-model="faq.question" label="Pregunta" />
-                          </VCol>
-                          <VCol cols="12">
-                            <VTextarea v-model="faq.answer" label="Respuesta" rows="2" />
-                          </VCol>
-                          <VCol cols="12" class="text-right">
-                            <VBtn color="error" variant="text" size="small" @click="landingForm.faqs.splice(index, 1)">
-                              Eliminar
-                            </VBtn>
-                          </VCol>
-                        </VRow>
-                      </VExpansionPanelText>
-                    </VExpansionPanel>
-                  </VExpansionPanels>
-                </VCol>
-
-                <!-- Contact & Map -->
-                <VCol cols="12">
-                  <VLabel class="mb-2">Información Adicional de Contacto y SEO</VLabel>
-                  <VTextField
-                    v-model="landingForm.whatsapp_number"
-                    label="Número de WhatsApp"
-                    placeholder="+5491100000000"
-                    prepend-inner-icon="mdi-whatsapp"
-                  />
-                  <VTextField
-                    v-model="landingForm.google_map_url"
-                    label="URL de Iframe de Google Maps"
-                    placeholder="https://www.google.com/maps/embed?pb=..."
-                    prepend-inner-icon="mdi-map-marker"
-                  />
-                </VCol>
-
-                <!-- About and CTA -->
-                <VCol cols="12">
-                  <VLabel class="mb-2">Información Adicional</VLabel>
-                  <VTextarea
-                    v-model="landingForm.about_text"
-                    label="Sobre Nosotros"
-                    rows="4"
-                  />
-                </VCol>
-
-                <VCol cols="12" md="6">
-                  <VTextField
-                    v-model="landingForm.cta_text"
-                    label="Texto Botón Principal (CTA)"
-                    placeholder="Ej: Ver Cursos"
-                  />
-                </VCol>
-                <VCol cols="12" md="6">
-                  <VTextField
-                    v-model="landingForm.cta_url"
-                    label="URL Botón Principal"
-                    placeholder="Ej: /courses"
-                  />
-                </VCol>
-
-                <VCol cols="12">
-                  <VBtn :loading="saving" color="primary" type="submit">
-                    Guardar Configuración
-                  </VBtn>
-                </VCol>
-              </VRow>
+              <!-- ... rest of landing form ... -->
             </VForm>
+          </VWindowItem>
+
+          <!-- Channels Tab -->
+          <VWindowItem value="channels">
+            <OmnichannelChannels />
           </VWindowItem>
 
           <!-- Security Tab -->

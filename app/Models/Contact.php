@@ -17,6 +17,21 @@ class Contact extends Model
         'client_id',
         'name',
         'email',
+        'company',
+        'job_title',
+        'industry',
+        'activity',
+        'linkedin_url',
+        'maps_url',
+        'address_details',
+        'city',
+        'province',
+        'country',
+        'deliverability_status',
+        'whatsapp_received_at',
+        'entity_type',
+        'assigned_sender',
+        'custom_fields',
         'phone',
         'mobile',
         'position',
@@ -27,6 +42,8 @@ class Contact extends Model
 
     protected $casts = [
         'is_primary' => 'boolean',
+        'custom_fields' => 'array',
+        'whatsapp_received_at' => 'datetime',
     ];
 
     // Relationships

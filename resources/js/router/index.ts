@@ -40,6 +40,21 @@ const routes = [
         path: 'contact',
         name: 'contact',
         component: () => import('@/pages/public/ContactPage.vue')
+      },
+      {
+        path: 'about',
+        name: 'about',
+        component: () => import('@/pages/public/AboutPage.vue')
+      },
+      {
+        path: 'privacy',
+        name: 'privacy',
+        component: () => import('@/pages/public/PrivacyPage.vue')
+      },
+      {
+        path: 'terms',
+        name: 'terms',
+        component: () => import('@/pages/public/TermsPage.vue')
       }
     ]
   },
@@ -84,6 +99,32 @@ const routes = [
     name: 'quotes',
     component: () => import('@/pages/crm/QuotesPage.vue'),
     meta: { requiresAuth: true },
+  },
+
+  // CRM - New Section D Routes
+  {
+    path: '/crm/automatizaciones',
+    name: 'crm-automatizaciones',
+    component: () => import('@/pages/crm/AutomationView.vue'),
+    meta: { requiresAuth: true, title: 'Automatizaciones CRM | Tenanta' },
+  },
+  {
+    path: '/crm/campanas/contactos',
+    name: 'crm-contact-extended',
+    component: () => import('@/pages/crm/ContactDetailExtended.vue'),
+    meta: { requiresAuth: true, title: 'Detalle de Contacto Extendido | Tenanta' },
+  },
+  {
+    path: '/crm/campanas/conversiones/:channel',
+    name: 'crm-conversions',
+    component: () => import('@/pages/crm/ConversionDashboard.vue'),
+    meta: { requiresAuth: true, title: 'Dashboard de Conversiones | Tenanta' },
+  },
+  {
+    path: '/crm/campanas/email-marketing',
+    name: 'crm-email-marketing',
+    component: () => import('@/pages/crm/EmailMarketingView.vue'),
+    meta: { requiresAuth: true, title: 'Email Marketing | Tenanta' },
   },
 
   // Operations
@@ -261,7 +302,44 @@ const routes = [
     component: () => import('@/pages/marketing/UnsubscribesPage.vue'),
     meta: { requiresAuth: true },
   },
-
+  {
+    path: '/marketing/campaigns/email',
+    name: 'marketing-email-marketing',
+    component: () => import('@/pages/marketing/EmailMarketingPage.vue'),
+    meta: { requiresAuth: true, title: 'Email Marketing | Tenanta' },
+  },
+  // Fase 12: Integraciones Digitales
+  {
+    path: '/marketing/automations',
+    name: 'marketing-automations',
+    component: () => import('@/pages/marketing/AutomationsDashboard.vue'),
+    meta: { requiresAuth: true, title: 'Automatizaciones Growth | Tenanta' },
+  },
+  // Fase 13: Omnicanalidad y Conversiones
+  {
+    path: '/marketing/conversiones/email',
+    name: 'marketing-conversiones-email',
+    component: () => import('@/pages/marketing/ConversationsInbox.vue'),
+    meta: { requiresAuth: true, title: 'Bandeja Email | Tenanta' },
+  },
+  {
+    path: '/marketing/conversiones/messenger',
+    name: 'marketing-conversiones-messenger',
+    component: () => import('@/pages/marketing/ConversationsInbox.vue'),
+    meta: { requiresAuth: true, title: 'Bandeja Messenger | Tenanta' },
+  },
+  {
+    path: '/marketing/conversiones/whatsapp',
+    name: 'marketing-conversiones-whatsapp',
+    component: () => import('@/pages/marketing/ConversationsInbox.vue'),
+    meta: { requiresAuth: true, title: 'Bandeja WhatsApp | Tenanta' },
+  },
+  {
+    path: '/marketing/omnichannel/analytics',
+    name: 'marketing-omnichannel-analytics',
+    component: () => import('@/pages/marketing/OmnichannelAnalytics.vue'),
+    meta: { requiresAuth: true, title: 'Analítica Omnicanal | Tenanta' },
+  },
   // Settings
   {
     path: '/settings',
@@ -324,6 +402,52 @@ const routes = [
     name: 'reseller-dashboard',
     component: () => import('@/pages/admin/ResellerDashboard.vue'),
     meta: { requiresAuth: true, title: 'Panel Distribuidor | Tenanta', description: 'Gestión de red marca blanca.' }
+  },
+
+  // LMS Administration
+  {
+    path: '/admin/courses',
+    name: 'admin-courses',
+    component: () => import('@/pages/admin/courses/AdminCoursesPage.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin/courses/:id/content',
+    name: 'admin-course-content',
+    component: () => import('@/pages/admin/courses/AdminCourseContentPage.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin/tests/:id',
+    name: 'admin-test-form',
+    component: () => import('@/pages/admin/courses/AdminTestFormPage.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin/enrollments',
+    name: 'admin-enrollments',
+    component: () => import('@/pages/admin/courses/AdminEnrollmentsPage.vue'),
+    meta: { requiresAuth: true }
+  },
+
+  // Finance
+  {
+    path: '/checkout',
+    name: 'checkout',
+    component: () => import('@/pages/finance/CheckoutPage.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/finance/success',
+    name: 'payment-success',
+    component: () => import('@/pages/finance/PaymentSuccessPage.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/finance/failure',
+    name: 'payment-failure',
+    component: () => import('@/pages/finance/PaymentFailurePage.vue'),
+    meta: { requiresAuth: true }
   },
 
   // 404

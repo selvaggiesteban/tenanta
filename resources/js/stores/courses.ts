@@ -2,10 +2,13 @@ import { defineStore } from 'pinia'
 import api from '@/api'
 import type {
   Course,
-  CourseBlock,
-  CourseTopic,
+  Block,
+  Topic,
   CourseFilters,
   PaginatedResponse,
+  Attempt,
+  TestAttemptState,
+  Test,
 } from '@/types/courses'
 
 interface CoursesState {
@@ -246,12 +249,12 @@ export const useCoursesStore = defineStore('courses', {
     },
 
     // Block management
-    async createBlock(courseId: number, data: Partial<CourseBlock>) {
+    async createBlock(courseId: number, data: Partial<Block>) {
       const response = await api.post(`/courses/${courseId}/blocks`, data)
       return response.data.data
     },
 
-    async updateBlock(courseId: number, blockId: number, data: Partial<CourseBlock>) {
+    async updateBlock(courseId: number, blockId: number, data: Partial<Block>) {
       const response = await api.put(`/courses/${courseId}/blocks/${blockId}`, data)
       return response.data.data
     },
@@ -265,12 +268,12 @@ export const useCoursesStore = defineStore('courses', {
     },
 
     // Topic management
-    async createTopic(courseId: number, blockId: number, data: Partial<CourseTopic>) {
+    async createTopic(courseId: number, blockId: number, data: Partial<Topic>) {
       const response = await api.post(`/courses/${courseId}/blocks/${blockId}/topics`, data)
       return response.data.data
     },
 
-    async updateTopic(courseId: number, blockId: number, topicId: number, data: Partial<CourseTopic>) {
+    async updateTopic(courseId: number, blockId: number, topicId: number, data: Partial<Topic>) {
       const response = await api.put(`/courses/${courseId}/blocks/${blockId}/topics/${topicId}`, data)
       return response.data.data
     },
@@ -297,7 +300,7 @@ export const useCoursesStore = defineStore('courses', {
     },
 
     // Test management
-    async startTest(testId: number): Promise<any> {
+    async startTest(testId: number): Promise<TestAttemptState> {
       this.loading = true
       try {
         const { data } = await api.post(`/tests/${testId}/start`)
@@ -307,7 +310,7 @@ export const useCoursesStore = defineStore('courses', {
       }
     },
 
-    async fetchTest(testId: number): Promise<any> {
+    async fetchTest(testId: number): Promise<Test> {
       this.loading = true
       try {
         const { data } = await api.get(`/tests/${testId}`)
@@ -317,7 +320,7 @@ export const useCoursesStore = defineStore('courses', {
       }
     },
 
-    async submitTest(testId: number, attemptId: number, answers: Record<number, any>): Promise<any> {
+    async submitTest(testId: number, attemptId: number, answers: Record<number, any>): Promise<Attempt> {
       this.loading = true
       try {
         const { data } = await api.post(`/tests/${testId}/submit`, {
@@ -330,7 +333,7 @@ export const useCoursesStore = defineStore('courses', {
       }
     },
 
-    async fetchTestResult(testId: number, attemptId: number): Promise<any> {
+    async fetchTestResult(testId: number, attemptId: number): Promise<Attempt> {
       this.loading = true
       try {
         const { data } = await api.get(`/tests/${testId}/result/${attemptId}`)

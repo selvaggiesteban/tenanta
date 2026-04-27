@@ -62,3 +62,7 @@ docker-compose.override.yml
 /auth.json
 /public/uploads/*
 !/public/uploads/.gitkeep
+/docs/
+/scripts/
+/docs/Hostinger VPS/id_ed25519
+/docs/Hostinger VPS/hostinger.json

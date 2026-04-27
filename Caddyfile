@@ -1,0 +1,24 @@
+{
+    # Configuración Global
+    email selvaggi.esteban@gmail.com
+}
+
+# Aplicación Principal y Subdirectorios de Landings
+http://72.60.59.25, https://srv1569965.hstgr.cloud {
+    root * /var/www/public
+    php_fastcgi app:9000
+    file_server
+
+    # Soporte para WebSockets (Reverb)
+    handle /app/* {
+        reverse_proxy app:8080
+    }
+}
+
+# Gestión Dinámica de Dominios Personalizados (Custom Domains)
+# Caddy pedirá certificados automáticamente para cualquier dominio apuntado a esta IP
+:443 {
+    php_fastcgi app:9000
+    root * /var/www/public
+    file_server
+}
