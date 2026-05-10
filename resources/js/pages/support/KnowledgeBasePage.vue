@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { api } from '@/api'
+import api from '@/api'
 
 interface Category {
   id: number

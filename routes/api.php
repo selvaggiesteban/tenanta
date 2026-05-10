@@ -36,7 +36,7 @@ use App\Http\Controllers\Api\Omnichannel\WebhookOrchestratorController;
 use App\Http\Controllers\Api\Admin\ResellerController;
 use App\Http\Controllers\Api\PublicController;
 use App\Http\Controllers\Api\PublicInquiryController;
-use App\Http\Controllers\Api\CRM\TeamController;
+use App\Http\Controllers\Api\TeamController;
 
 /*
 |--------------------------------------------------------------------------

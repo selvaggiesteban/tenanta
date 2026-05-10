@@ -209,30 +209,3 @@ async function saveDialog() {
 function confirmDeleteBlock(block: CourseBlock) { /* ... */ }
 function confirmDeleteTopic(topic: CourseTopic, block: CourseBlock) { /* ... */ }
 </script>
- CourseBlock) {
-  dialog.value = {
-    show: true,
-    title: 'Editar Bloque',
-    type: 'block',
-    data: { ...block }
-  }
-}
-
-function editTopic(topic: CourseTopic, block: CourseBlock) {
-  dialog.value = {
-    show: true,
-    title: 'Editar Tema',
-    type: 'topic',
-    data: { ...topic }
-  }
-}
-
-async function saveDialog() {
-  // Logic to call API and refresh course content
-  dialog.value.show = false
-  fetchCourseContent()
-}
-
-function confirmDeleteBlock(block: CourseBlock) { /* ... */ }
-function confirmDeleteTopic(topic: CourseTopic, block: CourseBlock) { /* ... */ }
-</script>
